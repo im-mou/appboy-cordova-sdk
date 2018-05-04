@@ -2,6 +2,18 @@ var AppboyPlugin = function () {
 }
 
 // Appboy methods
+
+/**
+ * At Qustodio we have two applications in the same one. The user chooses the application to enroll,
+ * therefore we need to provide a way to decide the App to target during runtime.
+ *
+ * @param {string} APIKey - A unique identifier per App.
+ * @param {string} apiEndpoint - Our custom or specific EU endpoint
+ */
+AppboyPlugin.prototype.startWithApiKey = function (APIKey, apiEndpoint) {
+   cordova.exec(null, null, "AppboyPlugin", "startWithApiKey", [APIKey, apiEndpoint]);
+}
+
 /**
  * When a user first uses Appboy on a device they are considered "anonymous". Use this method to identify a user
  *    with a unique ID, which enables the following:

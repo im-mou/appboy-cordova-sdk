@@ -13,27 +13,44 @@
   @property NSString *enableIDFACollection;
   @property NSString *enableLocationCollection;
   @property NSString *enableGeofences;
+  @property NSNotification *notification;
+  @property NSUserDefaults *userDefaults;
 @end
 
 @implementation AppboyPlugin
 
+static NSString* API_KEY = @"API_KEY";
+static NSString* API_ENDPOINT = @"API_ENDPOINT";
+
 - (void)pluginInitialize {
   NSDictionary *settings = self.commandDelegate.settings;
-  self.APIKey = settings[@"com.appboy.api_key"];
+
+
+  self.userDefaults = [NSUserDefaults standardUserDefaults];
+
+  self.APIKey = [self.userDefaults stringForKey:API_KEY];
+  self.apiEndpoint = [self.userDefaults stringForKey:API_ENDPOINT];
+  if (self.APIKey != nil && self.apiEndpoint != nil) {
+    [self start];
+  }
+
   self.disableAutomaticPushRegistration = settings[@"com.appboy.ios_disable_automatic_push_registration"];
   self.disableAutomaticPushHandling = settings[@"com.appboy.ios_disable_automatic_push_handling"];
-  self.apiEndpoint = settings[@"com.appboy.ios_api_endpoint"];
   self.enableIDFACollection = settings[@"com.appboy.ios_enable_idfa_automatic_collection"];
   self.enableLocationCollection = settings[@"com.appboy.enable_location_collection"];
   self.enableGeofences = settings[@"com.appboy.geofences_enabled"];
 
   [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didFinishLaunchingListener:) name:UIApplicationDidFinishLaunchingNotification object:nil];
-  if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
-    [AppDelegate swizzleHostAppDelegate];
-  }
+
+
 }
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
+    self.notification = notification;
+}
+
+- (void)start {
+
   NSMutableDictionary *appboyLaunchOptions = [@{ABKSDKFlavorKey : @(CORDOVA)} mutableCopy];
 
   // Set location collection and geofences from preferences
@@ -53,8 +70,8 @@
   }
 
   [Appboy startWithApiKey:self.APIKey
-            inApplication:notification.object
-        withLaunchOptions:notification.userInfo
+            inApplication:self.notification.object
+        withLaunchOptions:self.notification.userInfo
         withAppboyOptions:appboyLaunchOptions];
 
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
@@ -83,9 +100,22 @@
       [[UIApplication sharedApplication] registerForRemoteNotificationTypes: notificationSettingTypes];
     }
   }
+  if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
+    [AppDelegate swizzleHostAppDelegate];
+  }
 }
 
 /*-------Appboy.h-------*/
+- (void)startWithApiKey:(CDVInvokedUrlCommand *)command {
+    self.APIKey = [command argumentAtIndex:0 withDefault:nil];
+    self.apiEndpoint = [command argumentAtIndex:1 withDefault:nil];
+    [self start];
+    [self.userDefaults setObject:self.APIKey forKey:API_KEY];
+    [self.userDefaults setObject:self.apiEndpoint forKey:API_ENDPOINT];
+    [self.userDefaults synchronize];
+}
+
+
 - (void)changeUser:(CDVInvokedUrlCommand *)command {
   NSString *userId = [command argumentAtIndex:0 withDefault:nil];
   [[Appboy sharedInstance] changeUser:userId];
