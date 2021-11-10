@@ -4,11 +4,13 @@
 #import <Appboy_iOS_SDK/ABKAttributionData.h>
 #import <Appboy_iOS_SDK/AppboyNewsFeed.h>
 #import <Appboy_iOS_SDK/AppboyContentCards.h>
+#import <Appboy_iOS_SDK/ABKPushUtils.h>
 #elif __has_include(<Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyKit.h>)
 #import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyKit.h>
 #import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/ABKAttributionData.h>
 #import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyNewsFeed.h>
 #import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyContentCards.h>
+#import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/ABKPushUtils.h>
 #else
 #import "AppboyKit.h"
 #import "ABKAttributionData.h"
@@ -91,9 +93,15 @@
                             completionHandler:^(BOOL granted, NSError *_Nullable error) {
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
                             }];
+      // For UserNotification.framework (iOS 10+ only)
+      NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+      [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
       [[UIApplication sharedApplication] registerForRemoteNotifications];
     } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
       UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationSettingTypes categories:nil];
+      // For UserNotification.framework (iOS 10+ only)
+      NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+        [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
       [[UIApplication sharedApplication] registerForRemoteNotifications];
       [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
     } else {
