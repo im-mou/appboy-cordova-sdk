@@ -93,15 +93,14 @@
                             completionHandler:^(BOOL granted, NSError *_Nullable error) {
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
                             }];
-      // For UserNotification.framework (iOS 10+ only)
       NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
       [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+
       [[UIApplication sharedApplication] registerForRemoteNotifications];
     } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
-      UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationSettingTypes categories:nil];
-      // For UserNotification.framework (iOS 10+ only)
-      NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
-        [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+      NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
+      UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
+                                                                         categories:appboyCategories];
       [[UIApplication sharedApplication] registerForRemoteNotifications];
       [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
     } else {
