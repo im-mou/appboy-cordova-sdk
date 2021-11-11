@@ -93,13 +93,15 @@
                             completionHandler:^(BOOL granted, NSError *_Nullable error) {
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
                             }];
-    
-
       [[UIApplication sharedApplication] registerForRemoteNotifications];
+      NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+      [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
     } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
-      NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
-      UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
-                                                                         categories:appboyCategories];
+     
+        NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
+        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
+            categories:appboyCategories];
+    
       [[UIApplication sharedApplication] registerForRemoteNotifications];
       [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
     } else {
@@ -142,7 +144,7 @@
 }
 
 - (void)requestImmediateDataFlush:(CDVInvokedUrlCommand *)command {
-  [[Appboy sharedInstance] flushDataAndProcessRequestQueue];
+  [[Appboy sharedInstance] requestImmediateDataFlush];
 }
 
 /*-------ABKUser.h-------*/
@@ -163,10 +165,18 @@
 
 - (void) setGender:(CDVInvokedUrlCommand *)command{
   NSString *gender = [command argumentAtIndex:0 withDefault:nil];
-  if ([gender.lowercaseString isEqualToString:@"m"]) {
-    [[Appboy sharedInstance].user setGender:ABKUserGenderMale];
-  } else if ([gender.lowercaseString isEqualToString:@"f"]) {
+  if ([gender.lowercaseString isEqualToString:@"f"]) {
     [[Appboy sharedInstance].user setGender:ABKUserGenderFemale];
+  } else if ([gender.lowercaseString isEqualToString:@"m"]) {
+    [[Appboy sharedInstance].user setGender:ABKUserGenderMale];
+  } else if ([gender.lowercaseString isEqualToString:@"n"]) {
+    [[Appboy sharedInstance].user setGender:ABKUserGenderNotApplicable];
+  } else if ([gender.lowercaseString isEqualToString:@"o"]) {
+    [[Appboy sharedInstance].user setGender:ABKUserGenderOther];
+  } else if ([gender.lowercaseString isEqualToString:@"p"]) {
+    [[Appboy sharedInstance].user setGender:ABKUserGenderPreferNotToSay];
+  } else if ([gender.lowercaseString isEqualToString:@"u"]) {
+    [[Appboy sharedInstance].user setGender:ABKUserGenderUnknown];
   }
 }
 
