@@ -144,7 +144,7 @@
 }
 
 - (void)requestImmediateDataFlush:(CDVInvokedUrlCommand *)command {
-  [[Appboy sharedInstance] requestImmediateDataFlush];
+  [[Appboy sharedInstance] flushDataAndProcessRequestQueue];
 }
 
 /*-------ABKUser.h-------*/
