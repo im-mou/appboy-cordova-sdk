@@ -93,8 +93,7 @@
                             completionHandler:^(BOOL granted, NSError *_Nullable error) {
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
                             }];
-      NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
-      [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+    
 
       [[UIApplication sharedApplication] registerForRemoteNotifications];
     } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
