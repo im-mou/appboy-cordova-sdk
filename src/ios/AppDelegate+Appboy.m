@@ -2,8 +2,10 @@
 #import <objc/runtime.h>
 #if __has_include(<Appboy_iOS_SDK/AppboyKit.h>)
 #import <Appboy_iOS_SDK/AppboyKit.h>
+#import <Appboy_iOS_SDK/ABKPushUtils.h>
 #elif __has_include(<Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyKit.h>)
 #import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/AppboyKit.h>
+#import <Appboy-iOS-SDK/Appboy_iOS_SDK.framework/Headers/ABKPushUtils.h>
 #else
 #import "AppboyKit.h"
 #endif
@@ -80,11 +82,22 @@
 
 - (void)appboy_swizzled_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     [self appboy_swizzled_application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+    
+    // For UserNotification.framework (iOS 10+ only)
+    NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+
+   
+    [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
     [[Appboy sharedInstance] registerDeviceToken:deviceToken];
 }
 
 - (void)appboy_swizzled_no_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
   // If the delegate is not implemented, swizzle the method but don't call the original (or we'd get in a loop)
+      // For UserNotification.framework (iOS 10+ only)
+    NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+    
   [[Appboy sharedInstance] registerDeviceToken:deviceToken];
 }
 
