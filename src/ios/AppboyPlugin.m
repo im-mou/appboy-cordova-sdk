@@ -94,19 +94,13 @@
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
                             }];
       [[UIApplication sharedApplication] registerForRemoteNotifications];
-      NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
-      [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
-       UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
-            categories:appboyCategories];
-        [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+
     } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
      
-        NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
-            categories:appboyCategories];
+       
     
       [[UIApplication sharedApplication] registerForRemoteNotifications];
-      [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+    
     } else {
       [[UIApplication sharedApplication] registerForRemoteNotificationTypes: notificationSettingTypes];
     }
