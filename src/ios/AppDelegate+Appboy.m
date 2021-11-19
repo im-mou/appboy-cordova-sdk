@@ -82,19 +82,17 @@
 
 - (void)appboy_swizzled_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
     [self appboy_swizzled_application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+    [[Appboy sharedInstance] registerDeviceToken:deviceToken];
+
     NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
-UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
+    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
                                                                          categories:appboyCategories];
-[[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-     [[Appboy sharedInstance] registerDeviceToken:deviceToken];
+    [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+ 
 
-         NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
-      [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+    NSSet *nappboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:nappboyCategories];
     
-
-   
-  
-   
 }
 
 - (void)appboy_swizzled_no_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {

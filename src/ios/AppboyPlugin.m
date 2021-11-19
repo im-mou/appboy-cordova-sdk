@@ -93,9 +93,12 @@
                             completionHandler:^(BOOL granted, NSError *_Nullable error) {
                               [[Appboy sharedInstance] pushAuthorizationFromUserNotificationCenter:granted];
 
-
-            NSSet *appboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
-           [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:appboyCategories];
+      NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
+      UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
+                                                                         categories:appboyCategories];
+      [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+      NSSet *nappboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+           [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:nappboyCategories];
                             }];
       [[UIApplication sharedApplication] registerForRemoteNotifications];
 
