@@ -103,7 +103,13 @@
       [[UIApplication sharedApplication] registerForRemoteNotifications];
 
     } else if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_7_1) {
-     
+      NSSet *appboyCategories = [ABKPushUtils getAppboyUIUserNotificationCategorySet];
+      UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
+                                                                         categories:appboyCategories];
+      [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+      NSSet *nappboyCategories = [ABKPushUtils getAppboyUNNotificationCategorySet];
+           [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:nappboyCategories];
+                            }];
        
     
       [[UIApplication sharedApplication] registerForRemoteNotifications];
