@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import android.app.Activity;
+import android.view.View;
+
 import com.appboy.enums.CardCategory;
 import com.appboy.enums.Gender;
 import com.appboy.enums.Month;
@@ -16,12 +19,18 @@ import com.appboy.models.outgoing.AttributionData;
 import com.appboy.ui.activities.AppboyFeedActivity;
 import com.braze.Braze;
 import com.braze.BrazeUser;
+import com.braze.BrazeActivityLifecycleCallbackListener;
 import com.braze.configuration.BrazeConfig;
 import com.braze.events.ContentCardsUpdatedEvent;
 import com.braze.models.outgoing.BrazeProperties;
 import com.braze.support.BrazeLogger;
 import com.braze.ui.activities.ContentCardsActivity;
 import com.braze.ui.inappmessage.BrazeInAppMessageManager;
+import com.braze.models.inappmessage.IInAppMessage;
+import com.braze.models.inappmessage.MessageButton;
+import com.braze.ui.inappmessage.InAppMessageCloser;
+import com.braze.ui.inappmessage.InAppMessageOperation;
+import com.braze.ui.inappmessage.listeners.IInAppMessageManagerListener;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -36,7 +45,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 
 public class AppboyPlugin extends CordovaPlugin {
@@ -86,7 +94,11 @@ public class AppboyPlugin extends CordovaPlugin {
     // Configure Appboy using the preferences from the config.xml file passed to our plugin
     configureFromCordovaPreferences(this.preferences);
 
+    // Since we've likely passed the first Application.onCreate() (due to the plugin lifecycle), lets call the
+    // in-app message manager and session handling now
+    BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
     mPluginInitializationFinished = true;
+
   }
 
   @Override
@@ -94,7 +106,6 @@ public class AppboyPlugin extends CordovaPlugin {
     initializePluginIfAppropriate();
     Log.i(TAG, "Received " + action + " with the following arguments: " + args);
   
-
     switch (action) {
       /**
        * Added to fix deep links. This is not from out of the box Appboy BE CAREFUL on updates
@@ -102,14 +113,11 @@ public class AppboyPlugin extends CordovaPlugin {
        */
       case "startNotifications":
         appboyContext = callbackContext;
+      case "pauseBrazeInAppMessages":
+        BrazeInAppMessageManager.getInstance().setCustomInAppMessageManagerListener(new BrazeInAppMessageLifecycle(args.getBoolean(0)));
+        return true;
       case "startSessionTracking":
         mDisableAutoStartSessions = false;
-        return true;
-      case "registerAppboyInAppMessages":
-        BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
-        return true;
-      case "unregisterAppboyInAppMessages":
-        BrazeInAppMessageManager.getInstance().unregisterInAppMessageManager(this.cordova.getActivity());
         return true;
       case "registerAppboyPushMessages":
         Braze.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
@@ -338,6 +346,9 @@ public class AppboyPlugin extends CordovaPlugin {
   public void onResume(boolean multitasking) {
     super.onResume(multitasking);
     initializePluginIfAppropriate();
+    // Registers the BrazeInAppMessageManager for the current Activity. This Activity will now listen for
+    // in-app messages from Braze.
+    BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
   }
 
   @Override
@@ -690,4 +701,40 @@ public class AppboyPlugin extends CordovaPlugin {
       appboyContext.sendPluginResult(pluginResult);
     }
   }
+}
+class BrazeInAppMessageLifecycle implements IInAppMessageManagerListener {
+  public boolean mRequeue;
+
+  public BrazeInAppMessageLifecycle(boolean value) {
+    this.mRequeue = value;
+  }
+
+  @Override
+  public InAppMessageOperation beforeInAppMessageDisplayed(IInAppMessage inAppMessage) {
+    if(this.mRequeue) {
+        return InAppMessageOperation.DISPLAY_LATER;
+    }
+    return InAppMessageOperation.DISPLAY_NOW;
+  }
+
+  @Override
+  public boolean onInAppMessageClicked(IInAppMessage inAppMessage, InAppMessageCloser inAppMessageCloser) { return true; }
+
+  @Override
+  public boolean onInAppMessageButtonClicked(IInAppMessage inAppMessage, MessageButton button, InAppMessageCloser inAppMessageCloser) { return true; }
+
+  @Override
+  public void onInAppMessageDismissed(IInAppMessage inAppMessage) { }
+
+  @Override
+  public void beforeInAppMessageViewOpened(View inAppMessageView, IInAppMessage inAppMessage) { }
+
+  @Override
+  public void afterInAppMessageViewOpened(View inAppMessageView, IInAppMessage inAppMessage) { }
+
+  @Override
+  public void beforeInAppMessageViewClosed(View inAppMessageView, IInAppMessage inAppMessage) { }
+
+  @Override
+  public void afterInAppMessageViewClosed(IInAppMessage inAppMessage) { }
 }

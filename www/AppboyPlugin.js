@@ -66,14 +66,13 @@ var AppboyPlugin = function () {
 	*/
 };
 
-AppboyPlugin.prototype.registerAppboyInAppMessages = function () {
-  cordova.exec(null, null, "AppboyPlugin", "registerAppboyInAppMessages");
+AppboyPlugin.prototype.pauseBrazeInAppMessages = function (pause) {
+	if(typeof pause !== 'boolean') {
+		console.error(`param "pause" must be a boolean`);
+		return;
+	}
+	cordova.exec(null, null, "AppboyPlugin", "pauseBrazeInAppMessages", [pause]);
 };
-
-AppboyPlugin.prototype.unregisterAppboyInAppMessages = function () {
-  cordova.exec(null, null, "AppboyPlugin", "unregisterAppboyInAppMessages");
-};
-  
    
 // Appboy methods
    
