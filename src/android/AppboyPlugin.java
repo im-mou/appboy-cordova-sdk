@@ -16,6 +16,7 @@ import com.appboy.models.outgoing.AttributionData;
 import com.appboy.ui.activities.AppboyFeedActivity;
 import com.braze.Braze;
 import com.braze.BrazeUser;
+import com.braze.BrazeActivityLifecycleCallbackListener;
 import com.braze.configuration.BrazeConfig;
 import com.braze.events.ContentCardsUpdatedEvent;
 import com.braze.models.outgoing.BrazeProperties;
@@ -27,14 +28,17 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaPreferences;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.SplashScreenInternal;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -86,7 +90,17 @@ public class AppboyPlugin extends CordovaPlugin {
     // Configure Appboy using the preferences from the config.xml file passed to our plugin
     configureFromCordovaPreferences(this.preferences);
 
+    // Since we've likely passed the first Application.onCreate() (due to the plugin lifecycle), lets call the
+    // in-app message manager and session handling now
+    BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
     mPluginInitializationFinished = true;
+
+    /** Custom code */
+    // add spalsh screen to blacklist for the BrazeInAppMessageManager
+    Set<Class> inAppMessageBlacklist = new HashSet<>();
+    inAppMessageBlacklist.add(SplashScreenInternal.class);
+    mApplicationContext.registerActivityLifecycleCallbacks(new BrazeActivityLifecycleCallbackListener(inAppMessageBlacklist));
+    /** END: Custom code */
   }
 
   @Override
@@ -102,14 +116,11 @@ public class AppboyPlugin extends CordovaPlugin {
        */
       case "startNotifications":
         appboyContext = callbackContext;
+      case "pauseBrazeInAppMessages":
+        BrazeInAppMessageManager.getInstance().setCustomInAppMessageManagerListener(CustomInAppMessageManagerListener(args.getBoolean(0)));
+        return true;
       case "startSessionTracking":
         mDisableAutoStartSessions = false;
-        return true;
-      case "registerAppboyInAppMessages":
-        BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
-        return true;
-      case "unregisterAppboyInAppMessages":
-        BrazeInAppMessageManager.getInstance().unregisterInAppMessageManager(this.cordova.getActivity());
         return true;
       case "registerAppboyPushMessages":
         Braze.getInstance(mApplicationContext).registerAppboyPushMessages(args.getString(0));
@@ -338,6 +349,9 @@ public class AppboyPlugin extends CordovaPlugin {
   public void onResume(boolean multitasking) {
     super.onResume(multitasking);
     initializePluginIfAppropriate();
+    // Registers the BrazeInAppMessageManager for the current Activity. This Activity will now listen for
+    // in-app messages from Braze.
+    BrazeInAppMessageManager.getInstance().registerInAppMessageManager(this.cordova.getActivity());
   }
 
   @Override
