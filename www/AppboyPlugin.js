@@ -65,6 +65,15 @@ var AppboyPlugin = function () {
 		End of Modified to allow native to js communications
 	*/
 };
+
+AppboyPlugin.prototype.registerAppboyInAppMessages = function () {
+  cordova.exec(null, null, "AppboyPlugin", "registerAppboyInAppMessages");
+};
+
+AppboyPlugin.prototype.unregisterAppboyInAppMessages = function () {
+  cordova.exec(null, null, "AppboyPlugin", "unregisterAppboyInAppMessages");
+};
+  
    
 // Appboy methods
    
